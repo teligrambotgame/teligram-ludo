@@ -3,72 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>लूडो सुप्रीम प्रो</title>
+    <title>लूडो सुप्रीम प्रो 3D-इंजन</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Poppins', sans-serif; background: #0f172a; color: #fff; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 10px; overflow: hidden; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+        body { background: #0f172a; color: #fff; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 10px; overflow: hidden; }
         
-        .game-card { background: #1e293b; padding: 15px; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); max-width: 380px; width: 100%; border: 2px solid #334155; }
-        h1 { font-size: 20px; margin-bottom: 10px; color: #38bdf8; text-transform: uppercase; letter-spacing: 2px; font-weight: 800; }
+        .game-card { background: #1e293b; padding: 15px; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); max-width: 400px; width: 100%; border: 2px solid #334155; position: relative; }
+        h1 { font-size: 18px; margin-bottom: 8px; color: #38bdf8; text-transform: uppercase; letter-spacing: 2px; font-weight: 800; }
         
-        /* कैनवास कंटेनर */
-        #canvas-holder { position: relative; width: 340px; height: 340px; margin: 0 auto; background: #000; border-radius: 12px; overflow: hidden; border: 4px solid #0f172a; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        /* मोड लॉन्चर स्क्रीन */
+        #setup-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.95); z-index: 100; border-radius: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        .mode-btn { background: #38bdf8; color: #0f172a; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; margin: 10px; border-radius: 12px; cursor: pointer; width: 80%; transition: all 0.2s; }
+        .mode-btn:hover { transform: scale(1.05); }
+
+        /* बोर्ड होल्डर */
+        #canvas-holder { position: relative; width: 360px; height: 360px; margin: 0 auto; background: #000; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 35px rgba(0,0,0,0.7); }
         canvas { display: block; width: 100%; height: 100%; }
 
-        /* कंट्रोलर और बटन्स */
-        .ui-panel { margin-top: 15px; background: #0f172a; border-radius: 16px; padding: 12px; border: 1px solid #334155; }
-        #status-display { font-size: 14px; font-weight: 600; color: #94a3b8; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+        /* नीचे का ग्लोबल स्टेटस पैनल */
+        .ui-panel { margin-top: 12px; background: #0f172a; border-radius: 16px; padding: 10px; border: 1px solid #334155; }
+        #status-display { font-size: 14px; font-weight: 600; color: #38bdf8; text-transform: uppercase; }
         
-        .action-area { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-        #roll-button { flex: 1; font-size: 16px; padding: 12px; color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; text-transform: uppercase; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: all 0.2s ease; }
-        #roll-button:active { transform: scale(0.96); }
+        /* 4 अलग पासों की पोजीशनिंग की स्टाइल (कैनवास के ऊपर फ्लोटिंग) */
+        .floating-dice { position: absolute; width: 42px; height: 42px; background: white; border-radius: 8px; border: 2px solid #334155; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; color: #0f172a; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; z-index: 50; transition: transform 0.1s; }
+        .floating-dice.active-turn { border: 3px solid #fff; animation: pulseGlow 0.6s infinite alternate; }
         
-        /* 3D पासा लुक */
-        .dice-box { width: 50px; height: 50px; background: #fff; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; color: #1e293b; box-shadow: 0 4px 10px rgba(255,255,255,0.1); border: 2px solid #cbd5e1; transition: all 0.1s ease; }
-        .rolling { animation: spin 0.1s infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg) scale(0.9); } 100% { transform: rotate(360deg) scale(0.9); } }
+        @keyframes pulseGlow {
+            from { transform: scale(1); box-shadow: 0 0 5px #fff; }
+            to { transform: scale(1.15); box-shadow: 0 0 15px #fff; }
+        }
+
+        /* पासों के कोनों की सेटिंग्स */
+        #dice-RED { left: 70px; top: 70px; }
+        #dice-GREEN { right: 70px; top: 70px; }
+        #dice-YELLOW { right: 70px; bottom: 70px; }
+        #dice-BLUE { left: 70px; bottom: 70px; }
+
+        .rolling { animation: spin 0.1s infinite !important; }
+        @keyframes spin { 0% { transform: rotate(0deg) scale(1); } 100% { transform: rotate(360deg) scale(1); } }
     </style>
 </head>
 <body>
 
     <div class="game-card">
-        <h1>🏆 Ludo Supreme Pro</h1>
+        <!-- सेटअप स्क्रीन -->
+        <div id="setup-screen">
+            <h2 style="margin-bottom: 20px; color: #38bdf8;">🎮 गेम मोड चुनें</h2>
+            <button class="mode-btn" onclick="startGameMode('VS_BOT')">👤 1 Player vs 3 Bots</button>
+            <button class="mode-btn" onclick="startGameMode('4_PLAYER')">👥 4 Local Players (इंसान)</button>
+        </div>
+
+        <h1>🏆 Ludo Engine Pro Max</h1>
         
         <div id="canvas-holder">
-            <!-- यहीं पर पूरा गेम इंजन रेंडर होगा -->
+            <!-- 4 कोनों के अलग पासे (अलग-अलग पोजीशन्स) -->
+            <div id="dice-RED" class="floating-dice active-turn" onclick="handleDiceClick('RED')">🎲</div>
+            <div id="dice-GREEN" class="floating-dice" onclick="handleDiceClick('GREEN')">🎲</div>
+            <div id="dice-YELLOW" class="floating-dice" onclick="handleDiceClick('YELLOW')">🎲</div>
+            <div id="dice-BLUE" class="floating-dice" onclick="handleDiceClick('BLUE')">🎲</div>
+
             <canvas id="ludoCanvas" width="600" height="600"></canvas>
         </div>
 
         <div class="ui-panel">
-            <div id="status-display">🔴 लाल खिलाड़ी की बारी</div>
-            <div class="action-area">
-                <button id="roll-button" onclick="rollDiceEngine()" style="background: #ef4444;">🎲 पासा फेकें</button>
-                <div class="dice-box" id="dice-graphic">-</div>
-            </div>
+            <div id="status-display">🔴 लाल खिलाड़ी की बारी है</div>
         </div>
     </div>
 
     <script>
-        // टेलीग्राम वेब ऐप इनिशियलाइज़ेशन
         const tg = window.Telegram.WebApp;
         tg.expand();
 
         const canvas = document.getElementById('ludoCanvas');
         const ctx = canvas.getContext('2d');
 
-        // गेम स्टेट्स
         const players = ['RED', 'GREEN', 'YELLOW', 'BLUE'];
         const playerColors = { 'RED': '#ef4444', 'GREEN': '#22c55e', 'YELLOW': '#eab308', 'BLUE': '#3b82f6' };
         const playerColorsLight = { 'RED': '#fca5a5', 'GREEN': '#86efac', 'YELLOW': '#fde047', 'BLUE': '#93c5fd' };
         
-        let turn = 0; // 0: RED, 1: GREEN, 2: YELLOW, 3: BLUE
+        let turn = 0; 
         let diceValue = 0;
         let hasRolled = false;
         let isMoving = false;
+        let gameMode = 'VS_BOT'; // VS_BOT या 4_PLAYER
+        let particles = []; // ब्लास्ट इफ़ेक्ट के लिए सरप्राइज एरे
 
-        // पूरे 52 खानों के ग्रिड का नक्शा (Matrix Map)
-        // 15x15 के लूडो ग्रिड में हर खाने की X, Y पोजीशन
+        // 15x15 का लूडो ग्रिड पाथ
         const boardMap = [
             {x:1,y:6},{x:2,y:6},{x:3,y:6},{x:4,y:6},{x:5,y:6},
             {x:6,y:5},{x:6,y:4},{x:6,y:3},{x:6,y:2},{x:6,y:1},{x:6,y:0},{x:7,y:0},
@@ -80,54 +102,71 @@
             {x:5,y:8},{x:4,y:8},{x:3,y:8},{x:2,y:8},{x:1,y:8},{x:0,y:8},{x:0,y:7},{x:0,y:6}
         ];
 
-        // घर के अंदर गोटियों के बैठने की जगहें
         const homePositions = {
-            'RED':    [{x:2,y:2}, {x:3,y:2}, {x:2,y:3}, {x:3,y:3}],
-            'GREEN':  [{x:11,y:2},{x:12,y:2},{x:11,y:3},{x:12,y:3}],
-            'YELLOW': [{x:11,y:11},{x:12,y:11},{x:11,y:12},{x:12,y:12}],
-            'BLUE':   [{x:2,y:11},{x:3,y:11},{x:2,y:12},{x:3,y:12}]
+            'RED':    [{x:1.5,y:1.5}, {x:3.8,y:1.5}, {x:1.5,y:3.8}, {x:3.8,y:3.8}],
+            'GREEN':  [{x:10.5,y:1.5},{x:12.8,y:1.5},{x:10.5,y:3.8},{x:12.8,y:3.8}],
+            'YELLOW': [{x:10.5,y:10.5},{x:12.8,y:10.5},{x:10.5,y:12.8},{x:12.8,y:12.8}],
+            'BLUE':   [{x:1.5,y:10.5},{x:3.8,y:10.5},{x:1.5,y:12.8},{x:3.8,y:12.8}]
         };
 
-        // खिलाड़ियों की गोटी इनिशियलाइज़ेशन डेटा
+        const playerPaths = {
+            'RED':    { startCell: 0,  endStep: 50 },
+            'GREEN':  { startCell: 13, endStep: 50 },
+            'YELLOW': { startCell: 26, endStep: 50 },
+            'BLUE':   { startCell: 39, endStep: 50 }
+        };
+
         let tokens = [];
-        players.forEach((p, pIdx) => {
+        players.forEach((p) => {
             for(let i=0; i<4; i++) {
                 tokens.push({
-                    player: p,
-                    id: i,
-                    status: 'HOME', // HOME, TRACK, SAFE_ZONE, WON
-                    step: -1,
-                    color: playerColors[p]
+                    player: p, id: i, status: 'HOME', stepCount: -1, currentCellIdx: -1, color: playerColors[p]
                 });
             }
         });
 
-        const startSteps = { 'RED': 0, 'GREEN': 13, 'YELLOW': 26, 'BLUE': 39 };
-        const safeCells = [0, 8, 13, 21, 26, 34, 39, 47]; // सुरक्षित खाने (स्टार वाले)
+        const safeCells = [0, 8, 13, 21, 26, 34, 39, 47];
 
-        // --- इंजन ड्राइंग फंक्शंस (Canvas Draw) ---
+        function startGameMode(mode) {
+            gameMode = mode;
+            document.getElementById('setup-screen').style.display = 'none';
+            initGameEngineLoop();
+        }
+
+        // --- 60FPS प्रोफेशनल गेम लूप (Engine Loop) ---
+        function initGameEngineLoop() {
+            function updateFrame() {
+                drawBoard();
+                updateParticles();
+                requestAnimationFrame(updateFrame); // मक्खन जैसी स्मूथनेस देता है
+            }
+            requestAnimationFrame(updateFrame);
+            updateDiceUI();
+        }
+
         function drawBoard() {
-            ctx.clearRect(0, 0, 600, 600);
-            const size = 40; // हर स्क्वायर 40x40 पिक्सल का
+            const size = 40; 
+            ctx.fillStyle = "#1e293b";
+            ctx.fillRect(0,0,600,600);
 
-            // 1. बेस ग्रिड और रास्ते बनाना
+            // व्हाइट ग्रिड ट्रैक
             for(let r=0; r<15; r++) {
                 for(let c=0; c<15; c++) {
-                    ctx.strokeStyle = '#334155';
-                    ctx.lineWidth = 1;
+                    ctx.strokeStyle = '#cbd5e1';
+                    ctx.lineWidth = 0.5;
                     ctx.fillStyle = '#ffffff';
                     ctx.fillRect(c*size, r*size, size, size);
                     ctx.strokeRect(c*size, r*size, size, size);
                 }
             }
 
-            // 2. बड़े घर पेंट करना
+            // घर कलर करना
             drawBigHouse(0, 0, playerColors['RED']);
             drawBigHouse(9, 0, playerColors['GREEN']);
             drawBigHouse(9, 9, playerColors['YELLOW']);
             drawBigHouse(0, 9, playerColors['BLUE']);
 
-            // 3. सेफ जोन और होम पाथ्स को रंगना
+            // होम पाथ्स
             for(let i=1; i<=5; i++) {
                 ctx.fillStyle = playerColorsLight['RED'];    ctx.fillRect(i*size, 7*size, size, size);
                 ctx.fillStyle = playerColorsLight['GREEN'];  ctx.fillRect(7*size, i*size, size, size);
@@ -135,46 +174,33 @@
                 ctx.fillStyle = playerColorsLight['BLUE'];   ctx.fillRect(7*size, (14-i)*size, size, size);
             }
 
-            // स्टार्टिंग पॉइंट्स रंगना
             colorCell(boardMap[0], playerColors['RED']);
             colorCell(boardMap[13], playerColors['GREEN']);
             colorCell(boardMap[26], playerColors['YELLOW']);
             colorCell(boardMap[39], playerColors['BLUE']);
 
-            // स्टार मार्क्स (Safe Zones) ड्रॉ करना
             safeCells.forEach(idx => {
                 let cell = boardMap[idx];
-                ctx.fillStyle = '#cbd5e1';
-                ctx.font = "20px Arial";
-                ctx.fillText("⭐", cell.x*size+8, cell.y*size+28);
+                ctx.fillStyle = '#64748b';
+                ctx.font = "16px Arial";
+                ctx.fillText("⭐", cell.x*size+11, cell.y*size+26);
             });
 
-            // Center Triangle (जीत का मुख्य बिंदु)
-            ctx.beginPath();
-            ctx.moveTo(6*size, 6*size); ctx.lineTo(7.5*size, 7.5*size); ctx.lineTo(6*size, 9*size);
-            ctx.fillStyle = playerColors['RED']; ctx.fill();
+            // सेंटर डेकोरेशन
+            ctx.beginPath(); ctx.moveTo(6*size, 6*size); ctx.lineTo(7.5*size, 7.5*size); ctx.lineTo(6*size, 9*size); ctx.fillStyle = playerColors['RED']; ctx.fill();
+            ctx.beginPath(); ctx.moveTo(6*size, 6*size); ctx.lineTo(7.5*size, 7.5*size); ctx.lineTo(9*size, 6*size); ctx.fillStyle = playerColors['GREEN']; ctx.fill();
+            ctx.beginPath(); ctx.moveTo(9*size, 6*size); ctx.lineTo(7.5*size, 7.5*size); ctx.lineTo(9*size, 9*size); ctx.fillStyle = playerColors['YELLOW']; ctx.fill();
+            ctx.beginPath(); ctx.moveTo(6*size, 9*size); ctx.lineTo(7.5*size, 7.5*size); ctx.lineTo(9*size, 9*size); ctx.fillStyle = playerColors['BLUE']; ctx.fill();
 
-            ctx.beginPath();
-            ctx.moveTo(6*size, 6*size); ctx.lineTo(7.5*size, 7.5*size); ctx.lineTo(9*size, 6*size);
-            ctx.fillStyle = playerColors['GREEN']; ctx.fill();
-
-            ctx.beginPath();
-            ctx.moveTo(9*size, 6*size); ctx.lineTo(7.5*size, 7.5*size); ctx.lineTo(9*size, 9*size);
-            ctx.fillStyle = playerColors['YELLOW']; ctx.fill();
-
-            ctx.beginPath();
-            ctx.moveTo(6*size, 9*size); ctx.lineTo(7.5*size, 7.5*size); ctx.lineTo(9*size, 9*size);
-            ctx.fillStyle = playerColors['BLUE']; ctx.fill();
-
-            // 4. गोटियाँ ड्रॉ करना (Tokens Rendering)
-            drawTokens();
+            drawTokensEngine();
+            renderParticles();
         }
 
         function drawBigHouse(x, y, color) {
             const size = 40;
             ctx.fillStyle = color;
             ctx.fillRect(x*size, y*size, 6*size, 6*size);
-            ctx.fillStyle = '#ffffff';
+            ctx.fillStyle = '#1e293b';
             ctx.fillRect((x+1)*size, (y+1)*size, 4*size, 4*size);
         }
 
@@ -184,71 +210,82 @@
             ctx.fillRect(cell.x*size, cell.y*size, size, size);
         }
 
-        function drawTokens() {
+        // स्टेकिंग ओवरलैप सिस्टम
+        function drawTokensEngine() {
             const size = 40;
-            
+            let cellOccupants = {};
+
             tokens.forEach(t => {
-                let x, y;
-                if(t.status === 'HOME') {
-                    let pos = homePositions[t.player][t.id];
-                    x = pos.x * size + size/2;
-                    y = pos.y * size + size/2;
-                } else if(t.status === 'TRACK') {
-                    let cell = boardMap[t.step];
-                    x = cell.x * size + size/2;
-                    y = cell.y * size + size/2;
-                } else if(t.status === 'SAFE_ZONE') {
-                    // होम पाथ कैलकुलेशन
-                    let stepIn = t.step - 51;
-                    if(t.player === 'RED')    { x = stepIn * size + size/2; y = 7 * size + size/2; }
-                    if(t.player === 'GREEN')  { x = 7 * size + size/2; y = stepIn * size + size/2; }
-                    if(t.player === 'YELLOW') { x = (14 - stepIn) * size + size/2; y = 7 * size + size/2; }
-                    if(t.player === 'BLUE')   { x = 7 * size + size/2; y = (14 - stepIn) * size + size/2; }
-                } else {
-                    // Won
-                    x = 7.5 * size; y = 7.5 * size;
-                }
+                let key = t.status === 'HOME' ? `home-${t.player}-${t.id}` : t.status === 'TRACK' ? `track-${t.currentCellIdx}` : t.status === 'SAFE_ZONE' ? `safe-${t.player}-${t.stepCount}` : 'won';
+                if(!cellOccupants[key]) cellOccupants[key] = [];
+                cellOccupants[key].push(t);
+            });
 
-                // गोटी का बेस सर्कल
-                ctx.beginPath();
-                ctx.arc(x, y, 16, 0, 2 * Math.PI);
-                ctx.fillStyle = t.color;
-                ctx.fill();
-                ctx.lineWidth = 3;
-                ctx.strokeStyle = '#ffffff';
-                ctx.stroke();
+            Object.keys(cellOccupants).forEach(key => {
+                let group = cellOccupants[key];
+                let count = group.length;
 
-                // अंदर का छोटा क्राउन इफ़ेक्ट
-                ctx.beginPath();
-                ctx.arc(x, y, 6, 0, 2 * Math.PI);
-                ctx.fillStyle = 'rgba(255,255,255,0.6)';
-                ctx.fill();
+                group.forEach((t, index) => {
+                    let bx, by;
+                    if(t.status === 'HOME') {
+                        let pos = homePositions[t.player][t.id]; bx = pos.x * size; by = pos.y * size;
+                    } else if(t.status === 'TRACK') {
+                        let cell = boardMap[t.currentCellIdx]; bx = cell.x * size + size/2; by = cell.y * size + size/2;
+                    } else if(t.status === 'SAFE_ZONE') {
+                        let innerStep = t.stepCount - 50;
+                        if(t.player === 'RED')    { bx = innerStep * size + size/2; by = 7 * size + size/2; }
+                        if(t.player === 'GREEN')  { bx = 7 * size + size/2; by = innerStep * size + size/2; }
+                        if(t.player === 'YELLOW') { bx = (14 - innerStep) * size + size/2; by = 7 * size + size/2; }
+                        if(t.player === 'BLUE')   { bx = 7 * size + size/2; by = (14 - innerStep) * size + size/2; }
+                    } else { bx = 7.5 * size; by = 7.5 * size; }
 
-                // अगर गोटी एक्टिव प्लेयर की है और चलने योग्य है, तो ग्लो इफ़ेक्ट दें
-                if(hasRolled && !isMoving && t.player === players[turn]) {
-                    if(canMove(t)) {
-                        ctx.beginPath();
-                        ctx.arc(x, y, 20, 0, 2 * Math.PI);
-                        ctx.strokeStyle = '#ffffff';
-                        ctx.lineWidth = 2;
-                        ctx.stroke();
+                    let fx = bx, fy = by, radius = 14;
+                    if(count > 1 && t.status !== 'HOME' && t.status !== 'WON') {
+                        radius = 9;
+                        let offsets = [{dx: -6, dy: -6}, {dx: 6, dy: -6}, {dx: -6, dy: 6}, {dx: 6, dy: 6}];
+                        fx = bx + offsets[index % 4].dx; fy = by + offsets[index % 4].dy;
                     }
-                }
+
+                    ctx.beginPath();
+                    ctx.arc(fx, fy, radius, 0, 2 * Math.PI);
+                    ctx.fillStyle = t.color;
+                    ctx.fill();
+                    ctx.lineWidth = 2;
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.stroke();
+
+                    // टर्न इंडिकेटर ग्लो
+                    if(hasRolled && !isMoving && t.player === players[turn] && gameMode === '4_PLAYER' || (gameMode==='VS_BOT' && turn===0 && hasRolled && !isMoving)) {
+                        if(canMove(t)) {
+                            ctx.beginPath();
+                            ctx.arc(fx, fy, radius + 4, 0, 2 * Math.PI);
+                            ctx.strokeStyle = '#fff';
+                            ctx.stroke();
+                        }
+                    }
+                    t.clickArea = {x: fx, y: fy, r: radius + 4};
+                });
             });
         }
 
-        // --- पासा इंजन (Dice Rolling Logic) ---
-        function rollDiceEngine() {
-            if (hasRolled || isMoving) return;
+        // --- पासा और बारी नियंत्रण (Multiple Dice Click Logic) ---
+        function handleDiceClick(clickedPlayer) {
+            if(gameMode === 'VS_BOT' && turn !== 0) return; // बोट की बारी में इंसान क्लिक नहीं कर सकता
+            if(players[turn] !== clickedPlayer || hasRolled || isMoving) return;
 
-            let diceBox = document.getElementById('dice-graphic');
+            rollDiceEngine();
+        }
+
+        function rollDiceEngine() {
+            let activePlayer = players[turn];
+            let diceBox = document.getElementById(`dice-${activePlayer}`);
             diceBox.classList.add('rolling');
             
             let count = 0;
             let interval = setInterval(() => {
                 diceBox.innerText = Math.floor(Math.random() * 6) + 1;
                 count++;
-                if(count > 8) {
+                if(count > 6) {
                     clearInterval(interval);
                     diceBox.classList.remove('rolling');
                     
@@ -266,68 +303,90 @@
             let playableTokens = tokens.filter(t => t.player === activePlayer && canMove(t));
 
             if(playableTokens.length === 0) {
-                document.getElementById('status-display').innerText = "🔒 कोई चाल नहीं! बारी बदली।";
-                setTimeout(nextTurn, 1500);
+                setTimeout(nextTurn, 1000);
             } else {
-                document.getElementById('status-display').innerText = "👉 अपनी गोटी छूकर आगे बढ़ाएं!";
-                drawBoard();
+                // अगर VS_BOT मोड है और कंप्यूटर (GREEN, YELLOW, BLUE) का टर्न है
+                if(gameMode === 'VS_BOT' && turn !== 0) {
+                    setTimeout(() => {
+                        executeBotAI(playableTokens);
+                    }, 800);
+                }
             }
+        }
+
+        // --- 🤖 SMART BOT AI MECHANICS (स्मार्ट बोट का दिमाग) ---
+        function executeBotAI(playableTokens) {
+            // बोट प्राथमिकता 1: क्या वो किसी दुश्मन की गोटी काट सकता है?
+            let killMove = null;
+            for(let t of playableTokens) {
+                if(t.status === 'TRACK') {
+                    let futureCell = (t.currentCellIdx + diceValue) % 52;
+                    let targets = tokens.filter(e => e.player !== t.player && e.status === 'TRACK' && e.currentCellIdx === futureCell && !safeCells.includes(futureCell));
+                    if(targets.length > 0) { killMove = t; break; }
+                }
+            }
+
+            // बोट प्राथमिकता 2: क्या कोई गोटी घर से बाहर निकल सकती है (6 आने पर)?
+            let releaseMove = playableTokens.find(t => t.status === 'HOME' && diceValue === 6);
+
+            // बोट प्राथमिकता 3: जो गोटी सबसे आगे चल रही है उसे और आगे बढ़ाओ
+            let advancedMove = playableTokens.sort((a,b) => b.stepCount - a.stepCount)[0];
+
+            let finalChoice = killMove || releaseMove || advancedMove;
+            moveTokenSmoothly(finalChoice);
         }
 
         function canMove(t) {
             if(t.status === 'HOME' && diceValue === 6) return true;
             if(t.status === 'TRACK' || t.status === 'SAFE_ZONE') {
-                // मैक्सिमम स्टेप 57 जीत का घर है
-                if(t.step + diceValue <= 57) return true;
+                if(t.stepCount + diceValue <= 56) return true;
             }
             return false;
         }
 
-        // --- मक्खन जैसा स्मूथ वॉकिंग एनीमेशन (Smooth Movement Mechanics) ---
+        // --- वॉकिंग स्टेप मूवमेंट ---
         function moveTokenSmoothly(token) {
             isMoving = true;
-            let stepsToMove = diceValue;
+            let stepsLeft = diceValue;
             
-            function stepAnimation() {
-                if(stepsToMove > 0) {
+            function doStep() {
+                if(stepsLeft > 0) {
                     if(token.status === 'HOME') {
                         token.status = 'TRACK';
-                        token.step = startSteps[token.player];
+                        token.currentCellIdx = playerPaths[token.player].startCell;
+                        token.stepCount = 0;
                     } else {
-                        token.step++;
-                        // अगर गोटी अपने होम ट्रैक के मुहाने पर आ गई तो सेफ ज़ोन में मोड़ें
-                        if(token.step > 51 && token.status === 'TRACK') {
+                        token.stepCount++;
+                        if(token.stepCount > playerPaths[token.player].endStep) {
                             token.status = 'SAFE_ZONE';
+                        } else {
+                            token.currentCellIdx = (token.currentCellIdx + 1) % 52;
                         }
                     }
-                    stepsToMove--;
-                    drawBoard();
-                    setTimeout(stepAnimation, 250); // 250ms प्रति कदम (मक्खन की तरह दिखेगा)
+                    stepsLeft--;
+                    setTimeout(doStep, 180); 
                 } else {
-                    // चाल पूरी हुई, अब चेकिंग (काटना या जीतना)
                     checkKillOrWin(token);
                 }
             }
-            stepAnimation();
+            doStep();
         }
 
         function checkKillOrWin(movedToken) {
-            // क्या गोटी अंतिम घर पहुँच गई?
-            if(movedToken.step === 57) {
-                movedToken.status = 'WON';
-                alert(`🎉 शानदार! ${movedToken.player} की गोटी होम हो गई!`);
-            }
+            if(movedToken.stepCount === 56) movedToken.status = 'WON';
 
-            // काटना (Kill Mechanics) - केवल मुख्य ट्रैक पर और सुरक्षित खानों को छोड़कर
-            if(movedToken.status === 'TRACK' && !safeCells.includes(movedToken.step)) {
+            if(movedToken.status === 'TRACK' && !safeCells.includes(movedToken.currentCellIdx)) {
                 tokens.forEach(enemy => {
-                    if(enemy.player !== movedToken.player && enemy.status === 'TRACK' && enemy.step === movedToken.step) {
-                        enemy.status = 'HOME';
-                        enemy.step = -1;
-                        document.getElementById('status-display').innerText = "⚔️ गोटी कट गई! दोबारा चांस मिला।";
-                        hasRolled = false; // काटने वाले को एक और चांस
-                        isMoving = false;
-                        drawBoard();
+                    if(enemy.player !== movedToken.player && enemy.status === 'TRACK' && enemy.currentCellIdx === movedToken.currentCellIdx) {
+                        
+                        // गोटी कटने पर ब्लास्ट इफ़ेक्ट पैदा करना!
+                        let cell = boardMap[movedToken.currentCellIdx];
+                        createExplosion(cell.x * 40 + 20, cell.y * 40 + 20, enemy.color);
+
+                        enemy.status = 'HOME'; enemy.stepCount = -1; enemy.currentCellIdx = -1;
+                        hasRolled = false; isMoving = false;
+                        updateDiceUI();
+                        evaluateTurnLogic();
                         return;
                     }
                 });
@@ -339,64 +398,33 @@
         }
 
         function nextTurn() {
-            if (diceValue === 6) {
-                document.getElementById('status-display').innerText = `🎲 फिर से ${players[turn]} की बारी (6 आया था)`;
-            } else {
+            if (diceValue !== 6) {
                 turn = (turn + 1) % 4;
-                let colorsHindi = ['लाल (RED)', 'हरा (GREEN)', 'पीला (YELLOW)', 'नीला (BLUE)'];
-                document.getElementById('status-display').innerText = ` Turn: ${colorsHindi[turn]} खिलाड़ी`;
             }
+            updateDiceUI();
 
-            document.getElementById('roll-button').style.background = playerColors[players[turn]];
-            document.getElementById('dice-graphic').innerText = '-';
-            hasRolled = false;
-            drawBoard();
+            // अगर अगला खिलाड़ी बोट है, तो ऑटो-रोल ट्रिगर करें
+            if(gameMode === 'VS_BOT' && turn !== 0) {
+                setTimeout(() => {
+                    rollDiceEngine();
+                }, 1000);
+            }
         }
 
-        // --- क्लिक या टच डिटेक्शन इंजन (Click Collision Handler) ---
-        canvas.addEventListener('click', function(e) {
-            if(!hasRolled || isMoving) return;
+        function updateDiceUI() {
+            let names = { 'RED': '🔴 लाल', 'GREEN': '🟢 हरा', 'YELLOW': '🟡 पीला', 'BLUE': '🔵 नीला' };
+            document.getElementById('status-display').innerText = `${names[players[turn]]} खिलाड़ी की बारी है ${gameMode==='VS_BOT' && turn!==0 ? '(🤖 BOT)' : ''}`;
 
-            // मोबाइल टच के लिए पिक्सल स्केलिंग सेटिंग्स
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
-            const clickX = (e.clientX - rect.left) * scaleX;
-            const clickY = (e.clientY - rect.top) * scaleY;
-
-            const size = 40;
-            let activePlayer = players[turn];
-
-            // चेक करें कि किस गोटी पर क्लिक हुआ है
-            tokens.forEach(t => {
-                if(t.player !== activePlayer || !canMove(t)) return;
-
-                let tx, ty;
-                if(t.status === 'HOME') {
-                    let pos = homePositions[t.player][t.id];
-                    tx = pos.x * size + size/2; ty = pos.y * size + size/2;
-                } else if(t.status === 'TRACK') {
-                    let cell = boardMap[t.step];
-                    tx = cell.x * size + size/2; ty = cell.y * size + size/2;
-                } else if(t.status === 'SAFE_ZONE') {
-                    let stepIn = t.step - 51;
-                    if(t.player === 'RED')    { tx = stepIn * size + size/2; ty = 7 * size + size/2; }
-                    if(t.player === 'GREEN')  { tx = 7 * size + size/2; ty = stepIn * size + size/2; }
-                    if(t.player === 'YELLOW') { tx = (14 - stepIn) * size + size/2; ty = 7 * size + size/2; }
-                    if(t.player === 'BLUE')   { tx = 7 * size + size/2; ty = (14 - stepIn) * size + size/2; }
-                }
-
-                // डिस्टेंस फार्मूला से एकदम सटीक क्लिक जांचना
-                let dist = Math.sqrt((clickX - tx)**2 + (clickY - ty)**2);
-                if(dist < 22) { // अगर गोटी के रेडियस के अंदर क्लिक हुआ है
-                    moveTokenSmoothly(t);
+            players.forEach(p => {
+                let dBox = document.getElementById(`dice-${p}`);
+                dBox.classList.remove('active-turn');
+                if(p === players[turn]) {
+                    dBox.classList.add('active-turn');
                 }
             });
-        });
+        }
 
-        // पहली बार इंजन स्टार्ट करना
-        drawBoard();
-    </script>
-</body>
-    </html>
-    
+        // --- 💥 PARTICLES EXPLOSION ENGINE (ब्लास्ट एनीमेशन) ---
+        function createExplosion(x, y, color) {
+            for(let i=0; i<25; i++) {
+                particles.push({
