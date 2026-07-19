@@ -59,8 +59,13 @@
     </div>
 
     <script>
-        const tg = window.Telegram.WebApp;
-        tg.expand();
+        // सुरक्षित Telegram WebApp इनिशियलाइजेशन
+        let tg = null;
+        if (window.Telegram && window.Telegram.WebApp) {
+            tg = window.Telegram.WebApp;
+            tg.ready();
+            tg.expand();
+        }
 
         const canvas = document.getElementById('ludoCanvas');
         const ctx = canvas.getContext('2d');
@@ -118,7 +123,6 @@
         const btnPlayer = { x: 100, y: 340, w: 400, h: 60 };
 
         function gameLoop() {
-            // हर फ्रेम को पूरी तरह से क्लीन करना (निशान हटाने का पक्का इलाज)
             ctx.clearRect(0, 0, 600, 600);
             ctx.fillStyle = "#1e293b";
             ctx.fillRect(0, 0, 600, 600);
@@ -360,18 +364,15 @@
             return false;
         }
 
-        // --- 5 कदम कूदने का बग फिक्स मैकेनिक्स ---
         function moveTokenSmoothly(token) {
             isMoving = true;
             
-            // अगर गोटी घर के अंदर है और 6 आया है, तो सिर्फ 1 कदम में बाहर आयेगी (कूदने वाला बग यहीं से खत्म)
             if (token.status === 'HOME') {
                 token.status = 'TRACK';
                 token.currentCellIdx = startPoints[token.player];
                 token.stepCount = 0;
                 setTimeout(() => { completeMove(token); }, 200);
             } else {
-                // अगर पहले से खुली हुई है तो 1-1 कदम करके आगे बढ़ेगी
                 let steps = diceValue;
                 function processStep() {
                     if(steps > 0) {
@@ -452,6 +453,7 @@
         }
         function drawParticles() { renderParticles(); }
 
+        // --- फिक्स किया हुआ क्लिक इवेंट ---
         canvas.addEventListener('click', function(e) {
             const rect = canvas.getBoundingClientRect();
             const clickX = (e.clientX - rect.left) * (canvas.width / rect.width);
@@ -466,8 +468,12 @@
                 }
             } 
             else if (gameState === 'PLAYING') {
+                // पासा पलटने के लिए क्लिक चेक करें
                 if(!hasRolled && !isMoving && !isRollingAnim && (gameMode === '4_PLAYER' || turn === 0)) {
                     let activePos = dicePositions[players[turn]];
                     if(clickX >= activePos.x && clickX <= activePos.x + activePos.w && clickY >= activePos.y && clickY <= activePos.y + activePos.h) {
                         triggerDiceRoll();
-                        retu
+                        return;
+                    }
+                }
+  
