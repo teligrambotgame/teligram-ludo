@@ -4,76 +4,161 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>टेलीग्राम लूडो गेम</title>
-    <!-- टेलीग्राम का वेब ऐप स्क्रिप्ट ताकि टेलीग्राम इसे पहचान सके -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            background-color: #f0f0f0;
-            margin: 0;
-            padding: 20px;
-        }
-        h1 { color: #333; }
-        #game-board {
-            width: 300px;
-            height: 300px;
-            margin: 20px auto;
-            border: 5px solid #333;
-            background-color: #fff;
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            grid-template-rows: repeat(2, 1fr);
-        }
-        .zone { border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px;}
-        .red { background-color: #ff4d4d; color: white; }
-        .green { background-color: #2ecc71; color: white; }
-        .yellow { background-color: #f1c40f; }
-        .blue { background-color: #3498db; color: white; }
+        body { font-family: Arial, sans-serif; text-align: center; background-color: #f0f0f0; margin: 0; padding: 10px; }
+        h1 { color: #333; font-size: 24px; margin: 10px 0; }
         
-        #dice-container { margin: 30px; }
+        /* लूडो ट्रैक - 10 खानों का एक रास्ता */
+        #track {
+            display: flex;
+            justify-content: center;
+            margin: 20px auto;
+            max-width: 90%;
+            background: #fff;
+            border: 2px solid #333;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .cell {
+            width: 35px;
+            height: 35px;
+            border: 1px solid #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            font-size: 12px;
+            background: #fafafa;
+        }
+        .cell-0 { background: #ffcccc; font-weight: bold; } /* लाल का घर */
+        .cell-9 { background: #ccffcc; font-weight: bold; } /* हरे का घर */
+
+        /* गोटियाँ (Tokens) */
+        .token {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            position: absolute;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+        .red-token { background-color: #ff4d4d; }
+        .green-token { background-color: #2ecc71; }
+
+        #dice-container { margin: 20px; }
         #dice {
-            font-size: 40px;
-            padding: 15px 30px;
+            font-size: 20px;
+            padding: 12px 24px;
             background-color: #0088cc;
             color: white;
             border: none;
             border-radius: 8px;
             cursor: pointer;
+            font-weight: bold;
         }
+        #status { font-size: 18px; font-weight: bold; margin: 10px; color: #444; }
     </style>
 </head>
 <body>
 
-    <h1>टेलीग्राम लूडो</h1>
+    <h1>🏆 टेलीग्राम लूडो (Beta)</h1>
     
-    <!-- लूडो का एक बेसिक 4-कलर बोर्ड -->
-    <div id="game-board">
-        <div class="zone red">लाल</div>
-        <div class="zone green">हरा</div>
-        <div class="zone blue">नीला</div>
-        <div class="zone yellow">पीला</div>
+    <div id="status">बारी: लाल खिलाड़ी की 🔴</div>
+
+    <!-- छोटा लूडो ट्रैक (0 से 9 खाने) -->
+    <div id="track">
+        <div class="cell cell-0" id="cell-0">Start</div>
+        <div class="cell" id="cell-1"></div>
+        <div class="cell" id="cell-2"></div>
+        <div class="cell" id="cell-3"></div>
+        <div class="cell" id="cell-4"></div>
+        <div class="cell" id="cell-5"></div>
+        <div class="cell" id="cell-6"></div>
+        <div class="cell" id="cell-7"></div>
+        <div class="cell" id="cell-8"></div>
+        <div class="cell cell-9" id="cell-9">Home</div>
     </div>
 
-    <!-- पासा (Dice) रोल करने का बटन -->
+    <!-- पासा रोल कंटेनर -->
     <div id="dice-container">
         <button id="dice" onclick="rollDice()">🎲 पासा फेकें</button>
-        <p style="font-size: 24px; font-weight: bold;">नंबर: <span id="dice-result">-</span></p>
+        <p style="font-size: 20px;">नंबर आया: <span id="dice-result" style="font-weight:bold; color:#0088cc;">-</span></p>
     </div>
 
     <script>
-        // टेलीग्राम वेब ऐप को इनिशियलाइज करना
         const tg = window.Telegram.WebApp;
-        tg.expand(); // ऐप को पूरी स्क्रीन पर खोलने के लिए
+        tg.expand();
+
+        // गेम की स्टेट (Position)
+        let redPos = 0;   // लाल गोटी शुरुआत में 0 पर
+        let greenPos = 0; // हरी गोटी शुरुआत में 0 पर
+        let turn = 'लाल';  // पहली बारी लाल की
+        let lastRoll = 0;
+
+        // गोटियों को स्क्रीन पर दिखाने का फंक्शन
+        function updateBoard() {
+            // पहले पुरानी गोटियाँ हटाओ
+            document.querySelectorAll('.token').forEach(el => el.remove());
+
+            // लाल गोटी बनाओ और सही खाने में डालो
+            const redToken = document.createElement('div');
+            redToken.className = 'token red-token';
+            // अगर दोनों एक ही खाने पर हों तो थोड़ा खिसका कर दिखाओ
+            if(redPos === greenPos) redToken.style.left = '2px'; 
+            document.getElementById(`cell-${redPos}`).appendChild(redToken);
+
+            // हरी गोटी बनाओ
+            const greenToken = document.createElement('div');
+            greenToken.className = 'token green-token';
+            if(redPos === greenPos) greenToken.style.right = '2px';
+            document.getElementById(`cell-${greenPos}`).appendChild(greenToken);
+        }
 
         function rollDice() {
-            // 1 से 6 के बीच रैंडम नंबर
-            const randomNumber = Math.floor(Math.random() * 6) + 1;
-            document.getElementById('dice-result').innerText = randomNumber;
-            
-            // पासे पर नंबर दिखाना
-            document.getElementById('dice').innerText = "🎲 " + randomNumber;
+            // 1 से 4 तक का छोटा पासा (ताकि गेम जल्दी खत्म हो)
+            lastRoll = Math.floor(Math.random() * 4) + 1;
+            document.getElementById('dice-result').innerText = lastRoll;
+
+            if (turn === 'लाल') {
+                if (redPos + lastRoll <= 9) {
+                    redPos += lastRoll;
+                }
+                if (redPos === 9) {
+                    alert("🎉 लाल खिलाड़ी जीत गया!");
+                    resetGame();
+                    return;
+                }
+                turn = 'हरा';
+                document.getElementById('status').innerText = "बारी: हरे खिलाड़ी की 🟢";
+            } else {
+                if (greenPos + lastRoll <= 9) {
+                    greenPos += lastRoll;
+                }
+                if (greenPos === 9) {
+                    alert("🎉 हरा खिलाड़ी जीत गया!");
+                    resetGame();
+                    return;
+                }
+                turn = 'लाल';
+                document.getElementById('status').innerText = "बारी: लाल खिलाड़ी की 🔴";
+            }
+
+            updateBoard();
         }
+
+        function resetGame() {
+            redPos = 0;
+            greenPos = 0;
+            turn = 'लाल';
+            document.getElementById('status').innerText = "बारी: लाल खिलाड़ी की 🔴";
+            document.getElementById('dice-result').innerText = "-";
+            updateBoard();
+        }
+
+        // गेम शुरू होते ही बोर्ड सेट करें
+        updateBoard();
     </script>
 </body>
 </html>
