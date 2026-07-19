@@ -8,48 +8,30 @@
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { 
-            background: #0b0f19; 
-            color: #fff; 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            min-height: 100vh; 
-            overflow: hidden;
-            padding: 10px;
-        }
-        #game-container {
-            width: 100%;
-            max-width: 380px;
-            background: #111827;
-            padding: 12px;
-            border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.7);
-            border: 2px solid #1f2937;
-            text-align: center;
-        }
-        canvas {
-            display: block;
-            width: 100%;
-            height: auto;
-            background: #1e293b;
-            border-radius: 12px;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
-            touch-action: none;
-        }
-        .status-bar {
-            margin-top: 10px;
-            background: #0f172a;
-            padding: 10px 15px;
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: bold;
-            color: #38bdf8;
-            border: 1px solid #334155;
-            letter-spacing: 0.5px;
-        }
-    </style>
+    background: #0b0f19; 
+    color: #fff; 
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: flex-start; /* center से बदलकर flex-start किया */
+    height: 100vh; 
+    width: 100vw;
+    overflow: auto; /* hidden से बदलकर auto किया ताकि अगर स्क्रीन छोटी हो तो स्क्रॉल हो सके */
+    padding: 15px 10px;
+}
+#game-container {
+    width: 100%;
+    max-width: 360px;
+    background: #111827;
+    padding: 12px;
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.7);
+    border: 2px solid #1f2937;
+    text-align: center;
+    margin: 0 auto; /* सेंटर में रखने के लिए */
+}
+<\style>
 </head>
 <body>
 
