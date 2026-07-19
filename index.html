@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>लूडो क्लासिक लाइट</title>
+    <title>लूडो किंग प्रो</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { 
-            background: #0f172a; 
+            background: #0d1b2a; 
             color: #fff; 
-            font-family: sans-serif;
+            font-family: 'Arial', sans-serif;
             display: flex; 
             flex-direction: column; 
             align-items: center; 
@@ -20,11 +20,12 @@
         }
         #game-container {
             width: 100%;
-            max-width: 360px;
-            background: #1e293b;
-            padding: 10px;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            max-width: 380px;
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            padding: 12px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            border: 3px solid #ffd700;
             text-align: center;
         }
         canvas {
@@ -32,40 +33,43 @@
             width: 100%;
             height: auto;
             background: #ffffff;
-            border-radius: 8px;
+            border-radius: 12px;
+            border: 4px solid #ffd700;
         }
         .controls {
             margin-top: 15px;
-            background: #0f172a;
+            background: rgba(15, 23, 42, 0.9);
             padding: 12px;
-            border-radius: 8px;
+            border-radius: 12px;
+            border: 1.5px solid #ffd700;
         }
         .status {
             font-size: 16px;
             font-weight: bold;
-            color: #38bdf8;
+            color: #ffd700;
             margin-bottom: 10px;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.5);
         }
         .btn {
-            background: #22c55e;
+            background: linear-gradient(180deg, #22c55e, #15803d);
             color: white;
-            border: none;
-            padding: 10px 20px;
+            border: 2px solid #ffd700;
+            padding: 10px 30px;
             font-size: 16px;
             font-weight: bold;
-            border-radius: 20px;
+            border-radius: 25px;
             cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 10px rgba(34, 197, 94, 0.3);
         }
         .btn:active {
-            transform: scale(0.98);
+            transform: scale(0.96);
         }
     </style>
 </head>
 <body>
 
     <div id="game-container">
-        <canvas id="ludoCanvas" width="450" height="450"></canvas>
+        <canvas id="ludoCanvas" width="600" height="600"></canvas>
         <div class="controls">
             <div class="status" id="status-text">🔴 लाल की बारी है</div>
             <button class="btn" id="roll-btn" onclick="rollDice()">🎲 पासा फेंकें</button>
@@ -73,7 +77,6 @@
     </div>
 
     <script>
-        // Telegram WebApp Initialize
         if (window.Telegram && window.Telegram.WebApp) {
             window.Telegram.WebApp.ready();
             window.Telegram.WebApp.expand();
@@ -84,26 +87,35 @@
         const statusText = document.getElementById('status-text');
         const rollBtn = document.getElementById('roll-btn');
 
-        const size = 30; // हर स्क्वायर का साइज (15 * 30 = 450)
-        let turn = 0; // 0: Red, 1: Green, 2: Yellow, 3: Blue
+        const size = 40; 
+        let turn = 0; 
         let diceValue = 0;
         const players = ['RED', 'GREEN', 'YELLOW', 'BLUE'];
-        const colors = { RED: '#ef4444', GREEN: '#22c55e', YELLOW: '#eab308', BLUE: '#3b82f6' };
+        const colors = { RED: '#d63031', GREEN: '#00b894', YELLOW: '#f1c40f', BLUE: '#0984e3' };
+        const lightColors = { RED: '#ff8787', GREEN: '#55efc4', YELLOW: '#ffeaa7', BLUE: '#74b9ff' };
         const playerNames = { RED: '🔴 लाल', GREEN: '🟢 हरा', YELLOW: '🟡 पीला', BLUE: '🔵 नीला' };
 
-        // गोटियों की शुरुआती पोजीशन (Home bases)
+        // हर प्लेयर की परफेक्ट 4 गोटियाँ (लूडो किंग स्टाइल में सेट)
         let tokens = [
-            { player: 'RED', x: 1.5, y: 1.5 }, { player: 'RED', x: 3.5, y: 1.5 },
-            { player: 'GREEN', x: 10.5, y: 1.5 }, { player: 'GREEN', x: 12.5, y: 1.5 },
-            { player: 'YELLOW', x: 10.5, y: 10.5 }, { player: 'YELLOW', x: 12.5, y: 10.5 },
-            { player: 'BLUE', x: 1.5, y: 10.5 }, { player: 'BLUE', x: 3.5, y: 10.5 }
+            // RED
+            { player: 'RED', x: 2, y: 2 }, { player: 'RED', x: 4, y: 2 },
+            { player: 'RED', x: 2, y: 4 }, { player: 'RED', x: 4, y: 4 },
+            // GREEN
+            { player: 'GREEN', x: 11, y: 2 }, { player: 'GREEN', x: 13, y: 2 },
+            { player: 'GREEN', x: 11, y: 4 }, { player: 'GREEN', x: 13, y: 4 },
+            // YELLOW
+            { player: 'YELLOW', x: 11, y: 11 }, { player: 'YELLOW', x: 13, y: 11 },
+            { player: 'YELLOW', x: 11, y: 13 }, { player: 'YELLOW', x: 13, y: 13 },
+            // BLUE
+            { player: 'BLUE', x: 2, y: 11 }, { player: 'BLUE', x: 4, y: 11 },
+            { player: 'BLUE', x: 2, y: 13 }, { player: 'BLUE', x: 4, y: 13 }
         ];
 
         function drawBoard() {
-            ctx.clearRect(0, 0, 450, 450);
+            ctx.clearRect(0, 0, 600, 600);
 
-            // 1. पूरा ग्रिड (सफेद बैकग्राउंड और ग्रिड लाइन्स)
-            ctx.strokeStyle = '#cbd5e1';
+            // 1. ग्रिड बनाना
+            ctx.strokeStyle = '#e2e8f0';
             ctx.lineWidth = 1;
             for (let r = 0; r < 15; r++) {
                 for (let c = 0; c < 15; c++) {
@@ -113,35 +125,57 @@
                 }
             }
 
-            // 2. चारों होम बॉक्स (यार्ड्स)
+            // 2. होम बॉक्स
             drawBox(0, 0, colors.RED);
             drawBox(9, 0, colors.GREEN);
             drawBox(9, 9, colors.YELLOW);
             drawBox(0, 9, colors.BLUE);
 
-            // 3. होम पाथ (रंगीन रास्ते)
+            // 3. लूडो किंग स्टाइल होम पाथ और तीरों के निशान
             for (let i = 1; i <= 5; i++) {
-                ctx.fillStyle = colors.RED;    ctx.fillRect(i * size, 7 * size, size, size);
-                ctx.fillStyle = colors.GREEN;  ctx.fillRect(7 * size, i * size, size, size);
-                ctx.fillStyle = colors.YELLOW; ctx.fillRect((14 - i) * size, 7 * size, size, size);
-                ctx.fillStyle = colors.BLUE;   ctx.fillRect(7 * size, (14 - i) * size, size, size);
+                ctx.fillStyle = lightColors.RED;    ctx.fillRect(i * size, 7 * size, size, size);
+                ctx.fillStyle = lightColors.GREEN;  ctx.fillRect(7 * size, i * size, size, size);
+                ctx.fillStyle = lightColors.YELLOW; ctx.fillRect((14 - i) * size, 7 * size, size, size);
+                ctx.fillStyle = lightColors.BLUE;   ctx.fillRect(7 * size, (14 - i) * size, size, size);
             }
 
-            // 4. सेंटर ट्रायंगल
+            // स्टार्टिंग एरो/पॉइंट्स
+            ctx.fillStyle = colors.RED;    ctx.fillRect(1 * size, 6 * size, size, size);
+            ctx.fillStyle = colors.GREEN;  ctx.fillRect(8 * size, 1 * size, size, size);
+            ctx.fillStyle = colors.YELLOW; ctx.fillRect(13 * size, 8 * size, size, size);
+            ctx.fillStyle = colors.BLUE;   ctx.fillRect(6 * size, 13 * size, size, size);
+
+            // 4. सेंटर होम ट्रायंगल
             ctx.beginPath(); ctx.moveTo(6*size, 6*size); ctx.lineTo(7.5*size, 7.5*size); ctx.lineTo(6*size, 9*size); ctx.fillStyle = colors.RED; ctx.fill();
             ctx.beginPath(); ctx.moveTo(6*size, 6*size); ctx.lineTo(7.5*size, 7.5*size); ctx.lineTo(9*size, 6*size); ctx.fillStyle = colors.GREEN; ctx.fill();
             ctx.beginPath(); ctx.moveTo(9*size, 6*size); ctx.lineTo(7.5*size, 7.5*size); ctx.lineTo(9*size, 9*size); ctx.fillStyle = colors.YELLOW; ctx.fill();
             ctx.beginPath(); ctx.moveTo(6*size, 9*size); ctx.lineTo(7.5*size, 7.5*size); ctx.lineTo(9*size, 9*size); ctx.fillStyle = colors.BLUE; ctx.fill();
-            
-            // 5. गोटियां ड्रा करना
+
+            // 5. 3D गोटियाँ ड्रा करना (Shadow + Border + Inner Ring)
             tokens.forEach(t => {
+                let cx = t.x * size + size/2;
+                let cy = t.y * size + size/2;
+
+                // 3D शैडो प्रभाव
                 ctx.beginPath();
-                ctx.arc(t.x * size, t.y * size, 11, 0, Math.PI * 2);
+                ctx.arc(cx + 2, cy + 3, 14, 0, Math.PI * 2);
+                ctx.fillStyle = "rgba(0,0,0,0.25)";
+                ctx.fill();
+
+                // मुख्य गोटी
+                ctx.beginPath();
+                ctx.arc(cx, cy, 14, 0, Math.PI * 2);
                 ctx.fillStyle = colors[t.player];
                 ctx.fill();
                 ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 2;
+                ctx.lineWidth = 2.5;
                 ctx.stroke();
+
+                // अंदर का लूडो किंग रिंग डिज़ाइन
+                ctx.beginPath();
+                ctx.arc(cx, cy, 7, 0, Math.PI * 2);
+                ctx.fillStyle = "rgba(255,255,255,0.35)";
+                ctx.fill();
             });
         }
 
@@ -149,8 +183,9 @@
             ctx.fillStyle = color;
             ctx.fillRect(x * size, y * size, 6 * size, 6 * size);
             ctx.fillStyle = '#ffffff';
-            ctx.fillRect((x + 1) * size, (y + 1) * size, 4 * size, 4 * size);
-            ctx.strokeStyle = '#0f172a';
+            ctx.fillRect((x + 1.2) * size, (y + 1.2) * size, 3.6 * size, 3.6 * size);
+            ctx.strokeStyle = '#475569';
+            ctx.lineWidth = 2;
             ctx.strokeRect(x * size, y * size, 6 * size, 6 * size);
         }
 
@@ -163,18 +198,17 @@
                 rollBtn.innerText = `🎲 ${diceValue}`;
                 counter++;
                 
-                if (counter > 6) {
+                if (counter > 8) {
                     clearInterval(anim);
                     
-                    // टर्न बदलने का बेसिक लॉजिक (पासा फेंकने के बाद अगला खिलाड़ी)
                     setTimeout(() => {
                         turn = (turn + 1) % 4;
                         statusText.innerText = `${playerNames[players[turn]]} की बारी है`;
                         rollBtn.disabled = false;
                         rollBtn.innerText = '🎲 पासा फेंकें';
-                    }, 1000);
+                    }, 900);
                 }
-            }, 80);
+            }, 70);
         }
 
         // गेम स्टार्ट करें
