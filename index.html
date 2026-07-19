@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>टेलीग्राम लूडो गेम</title>
+    <!-- टेलीग्राम का वेब ऐप स्क्रिप्ट ताकि टेलीग्राम इसे पहचान सके -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 { color: #333; }
+        #game-board {
+            width: 300px;
+            height: 300px;
+            margin: 20px auto;
+            border: 5px solid #333;
+            background-color: #fff;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+        }
+        .zone { border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px;}
+        .red { background-color: #ff4d4d; color: white; }
+        .green { background-color: #2ecc71; color: white; }
+        .yellow { background-color: #f1c40f; }
+        .blue { background-color: #3498db; color: white; }
+        
+        #dice-container { margin: 30px; }
+        #dice {
+            font-size: 40px;
+            padding: 15px 30px;
+            background-color: #0088cc;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>टेलीग्राम लूडो</h1>
+    
+    <!-- लूडो का एक बेसिक 4-कलर बोर्ड -->
+    <div id="game-board">
+        <div class="zone red">लाल</div>
+        <div class="zone green">हरा</div>
+        <div class="zone blue">नीला</div>
+        <div class="zone yellow">पीला</div>
+    </div>
+
+    <!-- पासा (Dice) रोल करने का बटन -->
+    <div id="dice-container">
+        <button id="dice" onclick="rollDice()">🎲 पासा फेकें</button>
+        <p style="font-size: 24px; font-weight: bold;">नंबर: <span id="dice-result">-</span></p>
+    </div>
+
+    <script>
+        // टेलीग्राम वेब ऐप को इनिशियलाइज करना
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // ऐप को पूरी स्क्रीन पर खोलने के लिए
+
+        function rollDice() {
+            // 1 से 6 के बीच रैंडम नंबर
+            const randomNumber = Math.floor(Math.random() * 6) + 1;
+            document.getElementById('dice-result').innerText = randomNumber;
+            
+            // पासे पर नंबर दिखाना
+            document.getElementById('dice').innerText = "🎲 " + randomNumber;
+        }
+    </script>
+</body>
+</html>
