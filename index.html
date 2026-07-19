@@ -13,20 +13,20 @@
         .game-card { background: #1e293b; padding: 15px; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); max-width: 400px; width: 100%; border: 2px solid #334155; position: relative; }
         h1 { font-size: 18px; margin-bottom: 8px; color: #38bdf8; text-transform: uppercase; letter-spacing: 2px; font-weight: 800; }
         
-        /* मोड लॉन्चर स्क्रीन */
-        #setup-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.95); z-index: 100; border-radius: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
-        .mode-btn { background: #38bdf8; color: #0f172a; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; margin: 10px; border-radius: 12px; cursor: pointer; width: 80%; transition: all 0.2s; }
-        .mode-btn:hover { transform: scale(1.05); }
+        /* स्क्रीन के ऊपर ट्रांसपेरेंट ओवरले लॉन्चर */
+        #setup-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.98); z-index: 100; border-radius: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        .mode-btn { background: #38bdf8; color: #0f172a; border: none; padding: 15px 24px; font-size: 16px; font-weight: bold; margin: 12px; border-radius: 14px; cursor: pointer; width: 85%; box-shadow: 0 4px 10px rgba(56, 189, 248, 0.3); transition: all 0.2s; -webkit-tap-highlight-color: transparent; }
+        .mode-btn:active { transform: scale(0.95); background: #7dd3fc; }
 
         /* बोर्ड होल्डर */
-        #canvas-holder { position: relative; width: 360px; height: 360px; margin: 0 auto; background: #000; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 35px rgba(0,0,0,0.7); }
+        #canvas-holder { position: relative; width: 340px; height: 340px; margin: 0 auto; background: #000; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 35px rgba(0,0,0,0.7); border: 4px solid #0f172a; }
         canvas { display: block; width: 100%; height: 100%; }
 
         /* नीचे का ग्लोबल स्टेटस पैनल */
-        .ui-panel { margin-top: 12px; background: #0f172a; border-radius: 16px; padding: 10px; border: 1px solid #334155; }
+        .ui-panel { margin-top: 12px; background: #0f172a; border-radius: 16px; padding: 12px; border: 1px solid #334155; }
         #status-display { font-size: 14px; font-weight: 600; color: #38bdf8; text-transform: uppercase; }
         
-        /* 4 अलग पासों की पोजीशनिंग की स्टाइल (कैनवास के ऊपर फ्लोटिंग) */
+        /* 4 अलग पासों की पोजीशनिंग */
         .floating-dice { position: absolute; width: 42px; height: 42px; background: white; border-radius: 8px; border: 2px solid #334155; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; color: #0f172a; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; z-index: 50; transition: transform 0.1s; }
         .floating-dice.active-turn { border: 3px solid #fff; animation: pulseGlow 0.6s infinite alternate; }
         
@@ -35,22 +35,21 @@
             to { transform: scale(1.15); box-shadow: 0 0 15px #fff; }
         }
 
-        /* पासों के कोनों की सेटिंग्स */
-        #dice-RED { left: 70px; top: 70px; }
-        #dice-GREEN { right: 70px; top: 70px; }
-        #dice-YELLOW { right: 70px; bottom: 70px; }
-        #dice-BLUE { left: 70px; bottom: 70px; }
+        #dice-RED { left: 65px; top: 65px; }
+        #dice-GREEN { right: 65px; top: 65px; }
+        #dice-YELLOW { right: 65px; bottom: 65px; }
+        #dice-BLUE { left: 65px; bottom: 65px; }
 
         .rolling { animation: spin 0.1s infinite !important; }
-        @keyframes spin { 0% { transform: rotate(0deg) scale(1); } 100% { transform: rotate(360deg) scale(1); } }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
     <div class="game-card">
-        <!-- सेटअप स्क्रीन -->
+        <!-- सेटअप स्क्रीन ओवरले -->
         <div id="setup-screen">
-            <h2 style="margin-bottom: 20px; color: #38bdf8;">🎮 गेम मोड चुनें</h2>
+            <h2 style="margin-bottom: 25px; color: #38bdf8; font-weight: 800; letter-spacing: 1px;">🎮 गेम मोड चुनें</h2>
             <button class="mode-btn" onclick="startGameMode('VS_BOT')">👤 1 Player vs 3 Bots</button>
             <button class="mode-btn" onclick="startGameMode('4_PLAYER')">👥 4 Local Players (इंसान)</button>
         </div>
@@ -58,8 +57,8 @@
         <h1>🏆 Ludo Engine Pro Max</h1>
         
         <div id="canvas-holder">
-            <!-- 4 कोनों के अलग पासे (अलग-अलग पोजीशन्स) -->
-            <div id="dice-RED" class="floating-dice active-turn" onclick="handleDiceClick('RED')">🎲</div>
+            <!-- 4 पासे -->
+            <div id="dice-RED" class="floating-dice" onclick="handleDiceClick('RED')">🎲</div>
             <div id="dice-GREEN" class="floating-dice" onclick="handleDiceClick('GREEN')">🎲</div>
             <div id="dice-YELLOW" class="floating-dice" onclick="handleDiceClick('YELLOW')">🎲</div>
             <div id="dice-BLUE" class="floating-dice" onclick="handleDiceClick('BLUE')">🎲</div>
@@ -68,7 +67,7 @@
         </div>
 
         <div class="ui-panel">
-            <div id="status-display">🔴 लाल खिलाड़ी की बारी है</div>
+            <div id="status-display">चुनें कि कौन खेलेगा...</div>
         </div>
     </div>
 
@@ -87,10 +86,10 @@
         let diceValue = 0;
         let hasRolled = false;
         let isMoving = false;
-        let gameMode = 'VS_BOT'; // VS_BOT या 4_PLAYER
-        let particles = []; // ब्लास्ट इफ़ेक्ट के लिए सरप्राइज एरे
+        let gameMode = 'VS_BOT';
+        let particles = [];
+        let gameStarted = false;
 
-        // 15x15 का लूडो ग्रिड पाथ
         const boardMap = [
             {x:1,y:6},{x:2,y:6},{x:3,y:6},{x:4,y:6},{x:5,y:6},
             {x:6,y:5},{x:6,y:4},{x:6,y:3},{x:6,y:2},{x:6,y:1},{x:6,y:0},{x:7,y:0},
@@ -130,18 +129,18 @@
         function startGameMode(mode) {
             gameMode = mode;
             document.getElementById('setup-screen').style.display = 'none';
-            initGameEngineLoop();
+            gameStarted = true;
+            updateDiceUI();
         }
 
-        // --- 60FPS प्रोफेशनल गेम लूप (Engine Loop) ---
+        // गेम लूप को हमेशा ऑन रखें ताकि रेंडरिंग एरर न आए
         function initGameEngineLoop() {
             function updateFrame() {
                 drawBoard();
                 updateParticles();
-                requestAnimationFrame(updateFrame); // मक्खन जैसी स्मूथनेस देता है
+                requestAnimationFrame(updateFrame);
             }
             requestAnimationFrame(updateFrame);
-            updateDiceUI();
         }
 
         function drawBoard() {
@@ -149,7 +148,6 @@
             ctx.fillStyle = "#1e293b";
             ctx.fillRect(0,0,600,600);
 
-            // व्हाइट ग्रिड ट्रैक
             for(let r=0; r<15; r++) {
                 for(let c=0; c<15; c++) {
                     ctx.strokeStyle = '#cbd5e1';
@@ -160,13 +158,11 @@
                 }
             }
 
-            // घर कलर करना
             drawBigHouse(0, 0, playerColors['RED']);
             drawBigHouse(9, 0, playerColors['GREEN']);
             drawBigHouse(9, 9, playerColors['YELLOW']);
             drawBigHouse(0, 9, playerColors['BLUE']);
 
-            // होम पाथ्स
             for(let i=1; i<=5; i++) {
                 ctx.fillStyle = playerColorsLight['RED'];    ctx.fillRect(i*size, 7*size, size, size);
                 ctx.fillStyle = playerColorsLight['GREEN'];  ctx.fillRect(7*size, i*size, size, size);
@@ -186,7 +182,6 @@
                 ctx.fillText("⭐", cell.x*size+11, cell.y*size+26);
             });
 
-            // सेंटर डेकोरेशन
             ctx.beginPath(); ctx.moveTo(6*size, 6*size); ctx.lineTo(7.5*size, 7.5*size); ctx.lineTo(6*size, 9*size); ctx.fillStyle = playerColors['RED']; ctx.fill();
             ctx.beginPath(); ctx.moveTo(6*size, 6*size); ctx.lineTo(7.5*size, 7.5*size); ctx.lineTo(9*size, 6*size); ctx.fillStyle = playerColors['GREEN']; ctx.fill();
             ctx.beginPath(); ctx.moveTo(9*size, 6*size); ctx.lineTo(7.5*size, 7.5*size); ctx.lineTo(9*size, 9*size); ctx.fillStyle = playerColors['YELLOW']; ctx.fill();
@@ -210,7 +205,6 @@
             ctx.fillRect(cell.x*size, cell.y*size, size, size);
         }
 
-        // स्टेकिंग ओवरलैप सिस्टम
         function drawTokensEngine() {
             const size = 40;
             let cellOccupants = {};
@@ -254,13 +248,14 @@
                     ctx.strokeStyle = '#ffffff';
                     ctx.stroke();
 
-                    // टर्न इंडिकेटर ग्लो
-                    if(hasRolled && !isMoving && t.player === players[turn] && gameMode === '4_PLAYER' || (gameMode==='VS_BOT' && turn===0 && hasRolled && !isMoving)) {
-                        if(canMove(t)) {
-                            ctx.beginPath();
-                            ctx.arc(fx, fy, radius + 4, 0, 2 * Math.PI);
-                            ctx.strokeStyle = '#fff';
-                            ctx.stroke();
+                    if(gameStarted && hasRolled && !isMoving && t.player === players[turn]) {
+                        if(gameMode === '4_PLAYER' || (gameMode === 'VS_BOT' && turn === 0)) {
+                            if(canMove(t)) {
+                                ctx.beginPath();
+                                ctx.arc(fx, fy, radius + 4, 0, 2 * Math.PI);
+                                ctx.strokeStyle = '#fff';
+                                ctx.stroke();
+                            }
                         }
                     }
                     t.clickArea = {x: fx, y: fy, r: radius + 4};
@@ -268,9 +263,9 @@
             });
         }
 
-        // --- पासा और बारी नियंत्रण (Multiple Dice Click Logic) ---
         function handleDiceClick(clickedPlayer) {
-            if(gameMode === 'VS_BOT' && turn !== 0) return; // बोट की बारी में इंसान क्लिक नहीं कर सकता
+            if(!gameStarted) return;
+            if(gameMode === 'VS_BOT' && turn !== 0) return;
             if(players[turn] !== clickedPlayer || hasRolled || isMoving) return;
 
             rollDiceEngine();
@@ -305,7 +300,6 @@
             if(playableTokens.length === 0) {
                 setTimeout(nextTurn, 1000);
             } else {
-                // अगर VS_BOT मोड है और कंप्यूटर (GREEN, YELLOW, BLUE) का टर्न है
                 if(gameMode === 'VS_BOT' && turn !== 0) {
                     setTimeout(() => {
                         executeBotAI(playableTokens);
@@ -314,9 +308,7 @@
             }
         }
 
-        // --- 🤖 SMART BOT AI MECHANICS (स्मार्ट बोट का दिमाग) ---
         function executeBotAI(playableTokens) {
-            // बोट प्राथमिकता 1: क्या वो किसी दुश्मन की गोटी काट सकता है?
             let killMove = null;
             for(let t of playableTokens) {
                 if(t.status === 'TRACK') {
@@ -326,10 +318,7 @@
                 }
             }
 
-            // बोट प्राथमिकता 2: क्या कोई गोटी घर से बाहर निकल सकती है (6 आने पर)?
             let releaseMove = playableTokens.find(t => t.status === 'HOME' && diceValue === 6);
-
-            // बोट प्राथमिकता 3: जो गोटी सबसे आगे चल रही है उसे और आगे बढ़ाओ
             let advancedMove = playableTokens.sort((a,b) => b.stepCount - a.stepCount)[0];
 
             let finalChoice = killMove || releaseMove || advancedMove;
@@ -344,7 +333,6 @@
             return false;
         }
 
-        // --- वॉकिंग स्टेप मूवमेंट ---
         function moveTokenSmoothly(token) {
             isMoving = true;
             let stepsLeft = diceValue;
@@ -378,8 +366,6 @@
             if(movedToken.status === 'TRACK' && !safeCells.includes(movedToken.currentCellIdx)) {
                 tokens.forEach(enemy => {
                     if(enemy.player !== movedToken.player && enemy.status === 'TRACK' && enemy.currentCellIdx === movedToken.currentCellIdx) {
-                        
-                        // गोटी कटने पर ब्लास्ट इफ़ेक्ट पैदा करना!
                         let cell = boardMap[movedToken.currentCellIdx];
                         createExplosion(cell.x * 40 + 20, cell.y * 40 + 20, enemy.color);
 
@@ -403,7 +389,6 @@
             }
             updateDiceUI();
 
-            // अगर अगला खिलाड़ी बोट है, तो ऑटो-रोल ट्रिगर करें
             if(gameMode === 'VS_BOT' && turn !== 0) {
                 setTimeout(() => {
                     rollDiceEngine();
@@ -412,8 +397,9 @@
         }
 
         function updateDiceUI() {
+            if(!gameStarted) return;
             let names = { 'RED': '🔴 लाल', 'GREEN': '🟢 हरा', 'YELLOW': '🟡 पीला', 'BLUE': '🔵 नीला' };
-            document.getElementById('status-display').innerText = `${names[players[turn]]} खिलाड़ी की बारी है ${gameMode==='VS_BOT' && turn!==0 ? '(🤖 BOT)' : ''}`;
+            document.getElementById('status-display').innerText = `${names[players[turn]]} की बारी है ${gameMode==='VS_BOT' && turn!==0 ? '(🤖 BOT)' : ''}`;
 
             players.forEach(p => {
                 let dBox = document.getElementById(`dice-${p}`);
@@ -424,7 +410,32 @@
             });
         }
 
-        // --- 💥 PARTICLES EXPLOSION ENGINE (ब्लास्ट एनीमेशन) ---
         function createExplosion(x, y, color) {
             for(let i=0; i<25; i++) {
                 particles.push({
+                    x: x, y: y,
+                    vx: (Math.random() - 0.5) * 6,
+                    vy: (Math.random() - 0.5) * 6,
+                    radius: Math.random() * 4 + 2,
+                    color: color,
+                    alpha: 1
+                });
+            }
+        }
+
+        function updateParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+                p.x += p.vx; p.y += p.vy;
+                p.alpha -= 0.02;
+                if(p.alpha <= 0) particles.splice(i, 1);
+            }
+        }
+
+        function renderParticles() {
+            particles.forEach(p => {
+                ctx.save();
+                ctx.globalAlpha = p.alpha;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI*2);
+                c
